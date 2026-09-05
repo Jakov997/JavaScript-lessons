@@ -1,11 +1,12 @@
 let title = prompt("Введите название проекта");
 let screens = prompt("Введите типы экранов через запятую");
-let screenPrice = Number(prompt("Введите стоимость данной работы"));
+let screenPrice;
+let screenPriceInput;
 let adaptive = confirm("Будет ли адаптивная верстка? ");
 let service1 = prompt("Какой дополнительный тип услуги нужен?");
-let servicePrice1 = Number(prompt("Введите стоимость дополнительной услуги 1"));
+let servicePrice1 = prompt("Введите стоимость дополнительной услуги 1");
 let service2 = prompt("Какой дополнительный тип услуги нужен?");
-let servicePrice2 = Number(prompt("Введите стоимость дополнительной услуги 2"));
+let servicePrice2 = prompt("Введите стоимость дополнительной услуги 2");
 let rollback = 7;
 
 let lowCase = screens.toLowerCase().split(", ");
@@ -16,8 +17,31 @@ if (adaptive) {
   console.log("Адаптивная верстка не нужна");
 }
 
+do {
+  screenPriceInput = prompt("Введите стоимость данной работы");
+  screenPrice = Number(screenPriceInput);
+} while (
+  screenPriceInput === null ||
+  screenPriceInput.trim() === "" ||
+  !Number.isFinite(screenPrice)
+);
+
 let getAllServicePrices = function (a, b) {
-  return a + b;
+  let price1 = Number(a);
+  let price2 = Number(b);
+
+  if (
+    a === null ||
+    b === null ||
+    a.trim() === "" ||
+    b.trim() === "" ||
+    !Number.isFinite(price1) ||
+    !Number.isFinite(price2)
+  ) {
+    return 0;
+  }
+
+  return price1 + price2;
 };
 let allServicePrices = getAllServicePrices(servicePrice1, servicePrice2);
 
@@ -57,14 +81,22 @@ function getServicePercentPrices() {
 
 let servicePercentPrices = getServicePercentPrices();
 
+const counterPotatoes = function (potatoes) {
+  for (let i = 0; i < potatoes.length; i++) {
+    console.log(`Картошка №${i + 1} почищена!`);
+  }
+};
+
+counterPotatoes([1, 2, 3, 4, 5]);
+
 console.log(`Название проекта: ${title}`);
 console.log(discount(fullPrice));
 console.log(`Стоимость верстки экранов ${screenPrice} рублей`);
+console.log(typeof allServicePrices + " -Это тип переменной allServicePrices");
 console.log(`Сумма всех дополнительных услуг: ${allServicePrices} рублей`);
 console.log(
   `Стоимость верстки и всех дополнительных услуг: ${fullPrice} рублей`,
 );
 console.log(`Стоимость с учетом отката: ${Math.ceil(servicePercentPrices)}`);
-
 
 console.log(lowCase);
