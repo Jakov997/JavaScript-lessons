@@ -7,11 +7,8 @@ let servicePrice1 = Number(prompt("Введите стоимость допол�
 let service2 = prompt("Какой дополнительный тип услуги нужен?");
 let servicePrice2 = Number(prompt("Введите стоимость дополнительной услуги 2"));
 let rollback = 7;
-let fullPrice = screenPrice + servicePrice1 + servicePrice2;
-let percent = fullPrice * (rollback / 100);
-let servicePercentPrice = fullPrice - percent;
-let lowCase = screens.toLowerCase().split(", ");
 
+let lowCase = screens.toLowerCase().split(", ");
 
 if (adaptive) {
   console.log("Адаптивная верстка необходима");
@@ -19,22 +16,55 @@ if (adaptive) {
   console.log("Адаптивная верстка не нужна");
 }
 
-if (fullPrice > 30000) {
-    console.log("Даем скидку в 10%");
-} else if ( fullPrice > 15000 && fullPrice <= 30000) {
-    console.log("Даем скидку в 5%");
-}  else if ( fullPrice > 0 && fullPrice <= 15000) {
-    console.log("Скидка не предусмотрена");
-} else if (fullPrice <= 0) {
-    console.log("Что то пошло не так");
+let getAllServicePrices = function (a, b) {
+  return a + b;
+};
+let allServicePrices = getAllServicePrices(servicePrice1, servicePrice2);
+
+function getFullPrice() {
+  return screenPrice + allServicePrices;
 }
 
+let fullPrice = getFullPrice();
 
-console.log(`Стоимость с учетом отката: ${Math.ceil(servicePercentPrice)}`);
-console.log(title + "\n" + fullPrice + "\n" + adaptive);
-console.log(screens.split(", ").length);
+let percent = fullPrice * (rollback / 100);
+
+let discount = function (price) {
+  if (price > 30000) {
+    return "Даем скидку в 10%";
+  } else if (price > 15000 && price <= 30000) {
+    return "Даем скидку в 5%";
+  } else if (price > 0 && price <= 15000) {
+    return "Скидка не предусмотрена";
+  } else if (price <= 0) {
+    return "Что то пошло не так";
+  }
+};
+
+function getTitle(title) {
+  let clearTitle = title.trim();
+  if (clearTitle === "") {
+    return "";
+  }
+  return clearTitle[0].toUpperCase() + clearTitle.slice(1).toLowerCase();
+}
+
+title = getTitle(title);
+
+function getServicePercentPrices() {
+  return fullPrice - percent;
+}
+
+let servicePercentPrices = getServicePercentPrices();
+
+console.log(`Название проекта: ${title}`);
+console.log(discount(fullPrice));
 console.log(`Стоимость верстки экранов ${screenPrice} рублей`);
-console.log(`Полная стоимость ${fullPrice} рублей`);
+console.log(`Сумма всех дополнительных услуг: ${allServicePrices} рублей`);
+console.log(
+  `Стоимость верстки и всех дополнительных услуг: ${fullPrice} рублей`,
+);
+console.log(`Стоимость с учетом отката: ${Math.ceil(servicePercentPrices)}`);
+
 
 console.log(lowCase);
-
