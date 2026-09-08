@@ -1,62 +1,104 @@
 const appData = {
   title: "",
-  screens: "",
+  screens: [],
   screenPrice: 0,
   screenPriceInput: 0,
   adaptive: true,
-  service1: "",
+  services: {},
   servicePrice1: 0,
-  service2: "",
   servicePrice2: 0,
   rollback: 7,
 
-  asking() {
-    appData.title =
-      prompt("Введите название проекта", "Рекламный лендинг") ?? "";
-    appData.screens =
-      prompt(
-        "Введите типы экранов через запятую",
-        "Десктоп, Мобильный и тд",
-      ) ?? "";
-
-    do {
-      appData.screenPriceInput = prompt("Введите стоимость данной работы");
-      appData.screenPrice = Number(appData.screenPriceInput);
-    } while (
-      appData.screenPriceInput === null ||
-      appData.screenPriceInput.trim() === "" ||
-      !Number.isFinite(appData.screenPrice)
-    );
-
-    appData.adaptive = confirm("Будет ли адаптивная верстка?");
-    appData.service1 = prompt("Какой дополнительный тип услуги нужен?");
-    appData.servicePrice1 = prompt("Введите стоимость дополнительной услуги 1");
-    appData.service2 = prompt("Какой дополнительный тип услуги нужен?");
-    appData.servicePrice2 = prompt("Введите стоимость дополнительной услуги 2");
+  start() {
+    appData.asking();
+    appData.addPrices();
+    appData.getTitle();
+    appData.getFullPrice();
+    appData.getServicePercentPrices();
+    appData.transformTxt();
+    appData.logger();
   },
 
-  getAllServicePrices() {
-    const price1 = Number(appData.servicePrice1);
-    const price2 = Number(appData.servicePrice2);
+  transformTxt() {
+    appData.lowCase = appData.screens.map((item) => item.name.toLowerCase());
+  },
 
-    if (
-      appData.servicePrice1 === null ||
-      appData.servicePrice2 === null ||
-      appData.servicePrice1.trim() === "" ||
-      appData.servicePrice2.trim() === "" ||
-      !Number.isFinite(price1) ||
-      !Number.isFinite(price2)
-    ) {
-      return 0;
+  isText(value) {
+    if (value === null || value === undefined) return false;
+    const str = String(value).trim();
+    return str !== "" && !/^\d+$/.test(str);
+  },
+
+  isNumber(value) {
+    if (value === null || value === undefined) return false;
+    return value !== "" && !isNaN(Number(value));
+  },
+
+  asking() {
+
+    // Заголовок проекта
+    appData.title = "";
+    do {
+      appData.title = prompt("Введите название проекта", "Рекламный лендинг");
+    } while (!appData.isText(appData.title));
+
+
+    // Типы экранов
+    for (let i = 1; i <= 2; i++) {
+      let name = "";
+      do {
+        name = prompt("Введите типы экранов через запятую", "Десктоп, Мобильный и тд");
+      } while (!appData.isText(name));
+      
+      let price = 0;
+      do {
+        price = prompt("Введите стоимость данной работы");
+      } while (!appData.isNumber(price));
+
+      appData.screens.push({ id: i, name: name, price: +price });
     }
 
-    return price1 + price2;
+    // Дополнительные услуги
+    for (let i = 1; i <= 2; i++) {
+      let serviceName = "";
+      do {
+        serviceName = prompt(`Какой дополнительный тип услуги нужен?`);
+      } while (!appData.isText(serviceName));
+      
+
+      let servicePrice = 0;
+      do {
+        servicePrice = prompt(`Введите стоимость дополнительной услуги ${i}`);
+      } while (!appData.isNumber(servicePrice)); 
+
+      appData.services[serviceName] = Number(servicePrice);
+    }
+
+    // Адаптивная верстка
+    appData.adaptive = confirm("Будет ли адаптивная верстка?");
   },
 
+  // Функция для подсчета цен на экраны и услуги
+  addPrices: function () {
+    appData.screenPrice = appData.screens.reduce(
+      (sum, screen) => sum + screen.price,
+      0,
+    );
+
+    appData.allServicePrices = 0;
+    for (const key in appData.services) {
+      appData.allServicePrices += appData.services[key];
+    }
+  },
+
+
+  // Функция для получения полной стоимости проекта
   getFullPrice() {
-    return appData.screenPrice + appData.getAllServicePrices();
+    appData.fullPrice = appData.screenPrice + appData.allServicePrices;
+    return appData.fullPrice;
   },
 
+  // Функция для получения названия проекта с первой заглавной буквой
   getTitle() {
     const clearTitle = this.title.trim();
 
@@ -64,14 +106,17 @@ const appData = {
       return "";
     }
 
-    return clearTitle[0].toUpperCase() + clearTitle.slice(1).toLowerCase();
+    appData.title =
+      clearTitle[0].toUpperCase() + clearTitle.slice(1).toLowerCase();
   },
 
+  // Функция для получения стоимости услуг с учетом процента отката
   getServicePercentPrices() {
     const percent = appData.getFullPrice() * (appData.rollback / 100);
-    return Math.ceil(appData.getFullPrice() - percent);
+    appData.servicePercentPrices = Math.ceil(appData.getFullPrice() - percent);
   },
 
+  // Функция для получения информации о скидке с ветвлением
   discount(price) {
     if (price > 30000) {
       return "Даем скидку в 10%";
@@ -88,6 +133,7 @@ const appData = {
     return "Что то пошло не так";
   },
 
+  // Функция для логирования всей информации о проекте
   logger() {
     for (const key in this) {
       if (typeof this[key] === "function") {
@@ -98,28 +144,18 @@ const appData = {
     }
 
     console.log(`Название проекта: ${appData.title}`);
-    console.log(appData.discount(appData.getFullPrice()));
-    console.log(`Стоимость верстки экранов ${appData.screenPrice} рублей`);
+    console.log(appData.discount(appData.fullPrice));
+    console.log(`Стоимость верстки экранов: ${appData.screenPrice} рублей`);
     console.log(
-      `Сумма всех дополнительных услуг: ${appData.getAllServicePrices()} рублей`,
+      `Сумма всех дополнительных услуг: ${appData.allServicePrices} рублей`,
     );
     console.log(
-      `Стоимость верстки и всех дополнительных услуг: ${appData.getFullPrice()} рублей`,
+      `Стоимость верстки и всех дополнительных услуг: ${appData.fullPrice} рублей`,
     );
     console.log(
-      `Стоимость с учетом отката: ${appData.getServicePercentPrices()} рублей`,
+      `Стоимость с учетом отката: ${appData.servicePercentPrices} рублей`,
     );
-    console.log(appData.lowCase);
-  },
-
-  start() {
-    appData.asking();
-    appData.title = appData.getTitle();
-    appData.allServicePrices = appData.getAllServicePrices();
-    appData.fullPrice = appData.getFullPrice();
-    appData.servicePercentPrices = appData.getServicePercentPrices();
-    appData.lowCase = appData.screens.toLowerCase().split(", ");
-    appData.logger();
+    console.log(`Типы экранов: ${appData.lowCase}`);
   },
 };
 
